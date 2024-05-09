@@ -1,0 +1,17 @@
+{
+    "Mysql": {
+        "database": "idea-box",
+        "host": "localhost",
+        "password": "Mysqlroot",
+        "port": "3306",
+        "user": "root"
+    },
+    "Server": {
+        "author": "Taota",
+        "firstInit": "1712481799",
+        "model": "release",
+        "name": "Idea Box Server",
+        "port": "3061",
+        "version": "1.0.1"
+    }
+}
