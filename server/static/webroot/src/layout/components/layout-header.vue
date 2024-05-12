@@ -2,11 +2,16 @@
 import { ref, onMounted, onUnmounted, Transition } from 'vue';
 import { NIcon } from 'naive-ui'
 import { Sunny, Moon, SyncOutline } from '@vicons/ionicons5'
+import { TwoFactorAuthentication as authicon } from '@vicons/carbon'
 import { useThemeStore } from '@/stores/theme'
+import { useAuthStore } from '@/stores/auth';
+import { storeToRefs } from 'pinia';
 
 const isScrolled = ref(false)
 const themeChanger = ref(false)
 const themeStore = useThemeStore()
+const authStore = useAuthStore()
+const { showAuthModal } = storeToRefs(authStore)
 
 const handleScroll = () => {
     isScrolled.value = window.scrollY > 0;
@@ -39,6 +44,10 @@ const showThemeChanger = () => {
 const hideThemeChanger = () => {
     themeChanger.value = false
 }
+
+const showAuth = () => {
+    showAuthModal.value = true
+}
 </script>
 <template>
     <Transition>
@@ -53,6 +62,11 @@ const hideThemeChanger = () => {
                 <div class="layout-header-right-icon-cont" @click="showThemeChanger">
                     <n-icon size="20">
                         <sunny />
+                    </n-icon>
+                </div>
+                <div class="layout-header-right-icon-cont" @click="showAuth">
+                    <n-icon size="20">
+                        <authicon />
                     </n-icon>
                 </div>
             </div>

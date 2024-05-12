@@ -23,8 +23,17 @@ func LinkIdea() {
 	ideaGroup.DELETE("/", api.DeleteIdea)
 }
 
+func LinkComment() {
+	commentGroup := Server.Group("/comment")
+
+	commentGroup.POST("/", api.CreateComment)
+	commentGroup.DELETE("/", api.DeleteComment)
+	commentGroup.GET("/", api.GetCommentList)
+}
+
 func LinkDebug() {
 	if conf.Server.Model == "debug" {
 		Server.GET("/"+conf.RandomKey, api.SetDebugKeyInCookie)
 	}
+	Server.POST("/auth", api.SetAuthCookie)
 }

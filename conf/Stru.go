@@ -8,6 +8,10 @@ import (
 
 const confFilePath = "./conf/conf.json"
 
+var AuthKeys = map[string]int{
+	"1": 1,
+}
+
 // The server struct defines the configuration options for the server.
 type server struct {
 	Port      string `json:"port"`  // Server port
@@ -74,4 +78,15 @@ func CreateConf() {
 		tolog.Log().Errorf("Error while CreateConf %e", err).PrintAndWriteSafe()
 		return
 	}
+}
+
+func CheckAuthKey(key string) bool {
+	if _, ok := AuthKeys[key]; ok {
+		return true
+	}
+	return false
+}
+
+func GetAuthKeyID(key string) int {
+	return AuthKeys[key]
 }

@@ -34,6 +34,7 @@ func InitServer() error {
 
 	// Set the global Server variable to the configured Gin server.
 	apiServer := ginServer.Group("/api")
+	apiServer.Use(mid.UserCheckMid())
 	BaseServer = ginServer
 	Server = apiServer
 	LinkAPI()
@@ -60,6 +61,7 @@ func LinkAPI() {
 	// Link User and Message APIs to the main server.
 	LinkUser()
 	LinkIdea()
+	LinkComment()
 	LinkDebug()
 	StaticWeb()
 }

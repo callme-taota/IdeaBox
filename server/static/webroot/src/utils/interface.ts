@@ -36,3 +36,13 @@ export interface IdeaWithID {
     Description: string
     Author: number
 }
+
+export interface CommentItem {
+    Content: string
+    CreatedAt: string
+    ID: number
+    IdeaID: number
+    UserName: string
+    UserColor: string
+    UserID: number
+}

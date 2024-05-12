@@ -2,3 +2,14 @@
 tolog/logs/*
 server/static/webroot/node_modules
 server/static/webroot/dist
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+

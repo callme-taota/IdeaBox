@@ -21,6 +21,7 @@ export interface MyResponse<T = any> extends AxiosResponse {
 
 const instance = axios.create({
     baseURL: 'https://idea.callmetaota.fun/api',
+    // baseURL: 'http://localhost:3061/api',
     timeout: 5000,
     withCredentials: true,
 });

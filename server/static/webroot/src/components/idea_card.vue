@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { dateToString } from '@/utils/time';
-import { CalendarEdit24Regular } from '@vicons/fluent'
+import { CalendarEdit24Regular, Comment20Regular } from '@vicons/fluent'
 import { NIcon } from 'naive-ui';
 const { userName, ideaName, ideaDescription, createAt, color } = defineProps<{
     userName: string,
@@ -9,9 +9,12 @@ const { userName, ideaName, ideaDescription, createAt, color } = defineProps<{
     createAt: string,
     color: string
 }>()
-const emit = defineEmits(['edit']);
+const emit = defineEmits(['edit','comment']);
 const handleEditClick = () => {
     emit('edit');
+};
+const handleCommentClick = () => {
+    emit('comment');
 };
 </script>
 <template>
@@ -23,6 +26,11 @@ const handleEditClick = () => {
             <div style="display: flex; align-items: center;">
                 <div class="idea-card-author" :style="{ background: color, color: '#fff' }">
                     {{ userName }}
+                </div>
+                <div class="idea-edit-btn" @click="handleCommentClick">
+                    <n-icon>
+                        <Comment20Regular />
+                    </n-icon>
                 </div>
                 <div class="idea-edit-btn" @click="handleEditClick">
                     <n-icon>
@@ -82,6 +90,7 @@ const handleEditClick = () => {
     background: var(--add-btn-background);
     cursor: pointer;
     transition: 0.3s;
+    margin: 0 4px;
 }
 
 .idea-edit-btn:hover {

@@ -28,3 +28,16 @@ type UserTable struct {
 func (UserTable) TableName() string {
 	return "user"
 }
+
+type CommentTable struct {
+	ID        int `gorm:"primaryKey;autoIncrement"`
+	IdeaID    int
+	Content   string
+	UserID    int
+	CreatedAt time.Time
+	DeletedAt gorm.DeletedAt
+}
+
+func (CommentTable) TableName() string {
+	return "comment"
+}

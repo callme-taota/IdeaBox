@@ -109,12 +109,17 @@ func CreateIdea(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, models.R(models.KErrorMissing, models.KReturnFalse, models.RDC{}))
 		return
 	}
-	ok := models.ShouldCheckJSON(json, []string{"Name", "Description", "Author"})
+	ok := models.ShouldCheckJSON(json, []string{"Name", "Description"})
 	if ok != true {
 		c.JSON(http.StatusOK, models.R(models.KErrorMissing, models.KReturnFalse, models.RDC{}))
 		return
 	}
-	err := database.CreateIdea(json.Name, json.Description, json.Author)
+	userID, flag := c.Get("userID")
+	if flag == false {
+		c.JSON(http.StatusOK, models.R(models.KReturnMsgError, models.KReturnFalse, models.RDC{}))
+		return
+	}
+	err := database.CreateIdea(json.Name, json.Description, userID.(int))
 	if err != nil {
 		c.JSON(http.StatusOK, models.R(models.KErrorMissing, models.KReturnFalse, models.RDC{}))
 		return

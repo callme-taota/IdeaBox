@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import LayoutHeader from "./components/layout-header.vue"
 import LayoutFooter from "./components/layout-footer.vue"
+import AuthModal from "./components/auth-modal.vue"
 import { RouterView, useRouter, useRoute } from 'vue-router'
 
 </script>
@@ -10,6 +11,7 @@ import { RouterView, useRouter, useRoute } from 'vue-router'
         <div class="layout-router-cont">
             <RouterView />
         </div>
+        <AuthModal />
         <!-- <LayoutFooter /> -->
     </div>
 </template>
