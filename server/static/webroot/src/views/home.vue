@@ -1,61 +1,41 @@
 <script setup lang="ts">
 // base
 import { ref, onMounted, nextTick } from 'vue'
-import { useMessage, NIcon, NDrawer, NDrawerContent, NInput, NSelect, NButton, NDropdown, useDialog, type DrawerPlacement } from 'naive-ui'
+import { useMessage, NIcon, NDropdown, type DrawerPlacement } from 'naive-ui'
 import Idea_Card from '@/components/idea_card.vue'
+import Idea_add from '@/components/idea_add.vue';
+import Idea_edit from '@/components/idea_edit.vue';
+import Comment from '@/components/comment.vue';
 //icon
 import { Add as addicon } from '@vicons/ionicons5';
-import { Delete as delicon } from '@vicons/carbon'
 //api
-import { GetIdea, DeleteIdea, CreateIdea, UpdateIdea } from '@/api/idea';
-import { CreateComment, DeleteComment, GetComment } from '@/api/comment';
+import { GetIdea } from '@/api/idea';
 import { GetUserList } from '@/api/user';
 //utils
-import type { FullIdeaItem, UserItem, Idea, IdeaWithID, CommentItem } from '@/utils/interface';
-import { dateToDescription } from '@/utils/time';
+import type { FullIdeaItem, UserItem, IdeaWithID } from '@/utils/interface';
 //store
 const Message = useMessage()
-const Dialog = useDialog()
 //ref
 const ideaList = ref<FullIdeaItem[]>([])
-const displayDrawer = ref<boolean>(false)
+
 const placement = ref<DrawerPlacement>("right")
-const editDisplayDrawer = ref<boolean>(false)
-const editplacement = ref<DrawerPlacement>("right")
-const commentDisplayDrawer = ref<boolean>(false)
-const commentplacement = ref<DrawerPlacement>("right")
-const commentInput = ref<string>("")
-const commentWho = ref<number>(1)
-const commentList = ref<CommentItem[]>([])
-const commentCount = ref<number>(0)
-const commentIdeaID = ref<number>(0)
-const targetCommentID = ref<number>(0)
-const userList = ref<UserItem[]>([])
-const ideaItem = ref<Idea>({
-    Name: '',
-    Description: '',
-    Author: 1
-})
+const addDrawerDisplay = ref<boolean>(false)
+const editDrawerDisplay = ref<boolean>(false)
+const commentDrawerDisplay = ref<boolean>(false)
+
 const editItem = ref<IdeaWithID>({
     ID: 0,
     Name: '',
     Description: '',
     Author: 0
 })
+
+const targetIdeaID = ref<number>(0)
+const userList = ref<UserItem[]>([])
+
 const showDown = ref<boolean>(false)
 const downX = ref<number>(0)
 const downY = ref<number>(0)
-const dialogOptions = {
-    title: '删除',
-    content: '是否删除这条评论?',
-    positiveText: '确定',
-    negativeText: '不确定',
-    onPositiveClick: async () => {
-        await deleteComment()
-    },
-    onNegativeClick: () => {
-    }
-}
 const menuOptions = ref([
     {
         label: '新增',
@@ -78,92 +58,50 @@ onMounted(async () => {
     }
 })
 //fn
-const showDrawer = () => {
+const getIdea = async () => {
+    let res = await GetIdea({})
+    if (res.ok) {
+        ideaList.value = res.data.Ideas
+    } else {
+        Message.error("网络出了点问题诶")
+    }
+}
+
+const showAdd = () => {
     let windowWidth = window.innerWidth
     if (windowWidth <= 900) {
         placement.value = "bottom"
     } else {
         placement.value = "right"
     }
-    displayDrawer.value = true
+    addDrawerDisplay.value = true
 }
 
-const submitIdea = async () => {
-    let obj = ideaItem.value
-    if (obj.Name == "" || obj.Description == "") {
-        Message.warning("看看是不是少写了些啥")
-    }
-    await CreateIdea(obj)
-    displayDrawer.value = false
-    let res = await GetIdea({})
-    if (res.ok) {
-        ideaList.value = res.data.Ideas
-    } else {
-        Message.error("网络出了点问题诶")
-    }
-    ideaItem.value = {
-        Name: "",
-        Description: "",
-        Author: ideaItem.value.Author,
-    }
-}
-
-const updateIdea = async () => {
-    let obj = editItem.value
-    if (obj.Name == "" || obj.Author > 2 || obj.Author < 1 || obj.Description == "") {
-        Message.warning("看看是不是少写了些啥")
-    }
-    await UpdateIdea(obj)
-    editDisplayDrawer.value = false
-    let res = await GetIdea({})
-    if (res.ok) {
-        ideaList.value = res.data.Ideas
-    } else {
-        Message.error("网络出了点问题诶")
-    }
+const showEditIdea = async (idea: FullIdeaItem) => {
     editItem.value = {
-        ID: 0,
-        Name: "",
-        Description: "",
-        Author: editItem.value.Author,
-    }
-}
-
-const editIdea = async (idea: FullIdeaItem) => {
-    let obj = {
         "ID": idea.IdeaID,
         "Name": idea.IdeaName,
         "Description": idea.Description,
         "Author": idea.Author
     }
-    editItem.value = obj
     let windowWidth = window.innerWidth
     if (windowWidth <= 900) {
-        editplacement.value = "bottom"
+        placement.value = "bottom"
     } else {
-        editplacement.value = "right"
+        placement.value = "right"
     }
-    editDisplayDrawer.value = true
+    editDrawerDisplay.value = true
 }
 
-const delIdea = async () => {
-    let id = editItem.value.ID
-    await DeleteIdea({
-        "ID": id,
-    })
-    editDisplayDrawer.value = false
-    let res = await GetIdea({})
-    if (res.ok) {
-        ideaList.value = res.data.Ideas
+const showComment = async (ideaID: number) => {
+    targetIdeaID.value = ideaID
+    let windowWidth = window.innerWidth
+    if (windowWidth <= 900) {
+        placement.value = "bottom"
     } else {
-        Message.error("网络出了点问题诶")
+        placement.value = "right"
     }
-    editItem.value = {
-        ID: 0,
-        Name: "",
-        Description: "",
-        Author: editItem.value.Author,
-    }
+    commentDrawerDisplay.value = true
 }
 
 const handleContextMenu = async (e: MouseEvent) => {
@@ -183,51 +121,8 @@ const onClickoutside = () => {
 const handleMenuSelect = (key: string | number) => {
     showDown.value = false
     if (key == "add") {
-        showDrawer()
+        showAdd()
     }
-}
-
-const showComment = async (ideaID: number) => {
-    commentIdeaID.value = ideaID
-    await getComment(ideaID)
-    let windowWidth = window.innerWidth
-    if (windowWidth <= 900) {
-        commentplacement.value = "bottom"
-    } else {
-        commentplacement.value = "right"
-    }
-    commentDisplayDrawer.value = true
-}
-
-const getComment = async (ideaID: number) => {
-    let res = await GetComment({ "IdeaID": ideaID })
-    if (res.ok) {
-        commentCount.value = res.data.CommentCount
-        commentList.value = res.data.CommentList
-    }
-}
-
-const doComment = async () => {
-    let ideaID = commentIdeaID.value
-    let content = commentInput.value
-    let userID = commentWho.value
-    await CreateComment({
-        "IdeaID": ideaID,
-        "Content": content,
-        "UserID": userID
-    })
-    await getComment(ideaID)
-}
-
-const handleDelete = (commentID: number) => {
-    targetCommentID.value = commentID
-    Dialog.warning(dialogOptions)
-}
-
-const deleteComment = async () => {
-    let ideaID = commentIdeaID.value
-    await DeleteComment({ "CommentID": targetCommentID.value })
-    await getComment(ideaID)
 }
 
 </script>
@@ -236,100 +131,21 @@ const deleteComment = async () => {
         <!-- main part -->
         <div class="waterfall-container">
             <Idea_Card v-for="idea in ideaList" :color="idea.Color" :user-name="idea.Name" :idea-name="idea.IdeaName"
-                :idea-description="idea.Description" :create-at="idea.CreatedAt" @edit="editIdea(idea)"
+                :idea-description="idea.Description" :create-at="idea.CreatedAt" @edit="showEditIdea(idea)"
                 @comment="showComment(idea.IdeaID)" />
         </div>
         <!-- add button -->
-        <div class="add-btn" @click="showDrawer">
+        <div class="add-btn" @click="showAdd">
             <n-icon size="28">
                 <addicon />
             </n-icon>
         </div>
         <!-- add drawer -->
-        <n-drawer v-model:show="displayDrawer" :placement="placement" default-width="500" default-height="350">
-            <n-drawer-content title="我有一个点子💡">
-                <div>
-                    点子
-                    <n-input v-model:value="ideaItem.Name" placeholder="点子" maxlength="30" show-count
-                        clearable></n-input>
-                </div>
-                <!-- <div>
-                    谁
-                    <n-select v-model:value="ideaItem.Author" placeholder="谁呀" :options="userList" label-field="Name"
-                        value-field="ID" filterable></n-select>
-                </div> -->
-                <div>
-                    细说细说
-                    <n-input v-model:value="ideaItem.Description" placeholder="细说细说" type="textarea"
-                        clearable></n-input>
-                </div>
-                <n-button @click="submitIdea">想完了</n-button>
-            </n-drawer-content>
-        </n-drawer>
+        <Idea_add @done="getIdea" v-model:show="addDrawerDisplay" :placement="placement"></Idea_add>
         <!-- edit drawer -->
-        <n-drawer v-model:show="editDisplayDrawer" :placement="editplacement" default-width="500" default-height="370">
-            <n-drawer-content title="点子得改改💡">
-                <div>
-                    点子
-                    <n-input v-model:value="editItem.Name" placeholder="点子" maxlength="30" show-count
-                        clearable></n-input>
-                </div>
-                <div>
-                    谁
-                    <n-select v-model:value="editItem.Author" placeholder="谁呀" :options="userList" label-field="Name"
-                        value-field="ID" filterable></n-select>
-                </div>
-                <div>
-                    细说细说
-                    <n-input v-model:value="editItem.Description" placeholder="细说细说" type="textarea"
-                        clearable></n-input>
-                </div>
-                <br>
-                <div style="display: flex; justify-content: space-between;">
-                    <n-button @click="updateIdea">想完了</n-button>
-                    <n-button @click="delIdea" type="error">删了它</n-button>
-                </div>
-            </n-drawer-content>
-        </n-drawer>
+        <Idea_edit @done="getIdea" v-model:show="editDrawerDisplay" v-model:editItem="editItem" :placement="placement" :userList="userList"></Idea_edit>
         <!-- comment drawer -->
-        <n-drawer v-model:show="commentDisplayDrawer" :placement="commentplacement" default-width="500"
-            default-height="600" resizable>
-            <n-drawer-content :title="'评论💡 ( ' + commentCount + ' ) '">
-                <div v-for="comment in commentList" class="comment-card">
-                    <div class="comment-card-header">
-                        <div class="comment-card-author" :style="{ background: comment.UserColor, color: '#fff' }">
-                            {{ comment.UserName }}
-                        </div>
-                        <div style="display: flex;">
-                            <div>
-                                {{ dateToDescription(comment.CreatedAt) }}
-                            </div>
-                            <div class="comment-card-del" @click="handleDelete(comment.ID)">
-                                <n-icon>
-                                    <delicon />
-                                </n-icon>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="comment-card-content">
-                        {{ comment.Content }}
-                    </div>
-                </div>
-                <template #footer>
-                    <div>
-                        <n-input v-model:value="commentInput" placeholder="细说细说" type="textarea" clearable
-                            maxlength="120"></n-input>
-                        <div style="display: flex; margin-top: 12px;">
-                            <div style="flex:1"></div>
-                            <!-- <n-select v-model:value="commentWho" placeholder="谁呀" :options="userList" label-field="Name"
-                                value-field="ID" filterable></n-select> -->
-                            <div style="width: 10px;"></div>
-                            <n-button @click="doComment">评论</n-button>
-                        </div>
-                    </div>
-                </template>
-            </n-drawer-content>
-        </n-drawer>
+        <Comment v-model:show="commentDrawerDisplay" :placement="placement" v-model:ideaID="targetIdeaID"></Comment>
         <n-dropdown placement="bottom-start" trigger="manual" :x="downX" :y="downY" :options="menuOptions"
             :show="showDown" :on-clickoutside="onClickoutside" @select="handleMenuSelect"></n-dropdown>
     </div>
